@@ -10,7 +10,7 @@ const DB_PASS_COMPASS = process.env.DB_PASS_COMPASS;
 console.log(DB_USER_COMPASS, DB_PASS_COMPASS);
 
 //conectando no banco Mongo Atlas
-export const dbConnect = mongoose
+const dbConnect = mongoose
   .connect(
     /* Mongo Atlas */
     `mongodb+srv://${DB_USER}:${DB_PASS}@cluster0.xssnoir.mongodb.net/dc_fs12?retryWrites=true&w=majority`
@@ -23,3 +23,6 @@ export const dbConnect = mongoose
   .catch((error) => {
     console.log("Erro ao conectar no BD", error);
   });
+  
+
+  export default dbConnect

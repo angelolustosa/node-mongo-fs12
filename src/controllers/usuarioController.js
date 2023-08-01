@@ -1,14 +1,33 @@
-import { Usuario } from "../models/Usuario";
+import { Usuario } from "../models/Usuario.js";
+import moment from "moment/moment.js";
 
 class UsuarioController {
-  static criar = async (req, res) => {
+  static inserir = async (req, res) => {
     // desestruturação do body para acessar os atributos
     const { nome, idade, ativo, email } = req.body;
+
     // crio o objeto usuario copiado do objeto body
     const usuario = { nome, idade, ativo, email };
 
-    //cria o usuario através do mongoose
+    Object.keys(usuario).forEach((key) => {
+      // console.log('chave:', key, 'valor:', usuario[key])
+
+      if (!usuario[key]) {
+        console.log("validar");
+        res.status(422).json({ msg: `O campo ${key}, é vazio!` });
+        //interrompe a criação, ou seja, abaixo dele não executa a inserção
+        return
+      }
+    });
+
+    
+
+    console.log("inserir");
+
+    //cria o usuario através do mongoose e retorna o usuário criado com o id preenchido
     const usuarioDB = await Usuario.create(usuario);
+
+    console.log("consultou");
     res.status(201).json({
       data: usuarioDB,
       msg: "Usuário criado com sucesso!",
@@ -24,7 +43,13 @@ class UsuarioController {
     // crio o objeto usuario copiado do objeto body
     const usuario = { nome, idade, ativo, email };
 
-    await Usuario.updateOne({ _id: id }, usuario);
+    const updatedUsuario = await Usuario.updateOne({ _id: id }, usuario);
+    console.log(updatedUsuario)
+
+    if(updatedUsuario.matchedCount === 0) {
+      res.status(422).json(`Usuário ${usuario.nome} não foi atualizado!`);
+    }
+
     res.status(204).json("Usuário atualizado com sucesso!");
   };
 
@@ -36,7 +61,19 @@ class UsuarioController {
   static buscarPorId = async (req, res) => {
     const id = req.params.id;
 
+    if (id.length < 24 || id.length > 24) {
+      res.status(422).json({ message: "Tamanho inválido do Id!" });
+      return;
+    }
+
     const usuario = await Usuario.findOne({ _id: id });
+
+    console.log(usuario);
+
+    if (!usuario) {
+      res.status(422).json({ message: "Usuário não encontrado!" });
+      return;
+    }
 
     res.status(200).json(usuario);
   };
@@ -44,8 +81,18 @@ class UsuarioController {
   static excluir = async (req, res) => {
     const id = req.params.id;
 
+    if (id.length < 24 || id.length > 24) {
+      res.status(422).json({ message: "Tamanho inválido do Id!" });
+      return;
+    }
+
     //Busca o usuário, antes de deletar, com as suas informações
     const usuarioBD = await Usuario.findOne({ _id: id });
+
+    if (!usuarioBD) {
+      res.status(422).json({ message: "Usuário não encontrado!" });
+      return;
+    }
 
     //Deleta o usuário do banco
     await Usuario.deleteOne({ _id: usuarioBD.id });
@@ -59,4 +106,4 @@ class UsuarioController {
   };
 }
 
-export default UsuarioController
+export default UsuarioController;
